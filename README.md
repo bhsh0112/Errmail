@@ -9,11 +9,33 @@
 
 ## 安装
 
-推荐在虚拟环境里安装（最不影响系统 Python）：
+### 方式一：通过 pip 从 Git 仓库安装（推荐）
+
+最简单的方式，无需 clone 源码：
+
+```bash
+pip install git+https://github.com/bhsh0112/Errmail.git
+```
+
+或者指定分支/标签：
+
+```bash
+pip install git+https://github.com/bhsh0112@163.com/Errmail.git@main
+```
+
+如果仓库是私有的，可以使用 SSH：
+
+```bash
+pip install git+ssh://git@github.com/your-username/Errmail.git
+```
+
+### 方式二：本地开发安装
+
+如果你已经 clone 了源码，可以在开发模式下安装：
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 python -m pip install -U pip
 python -m pip install -e .
 ```
@@ -24,11 +46,15 @@ python -m pip install -e .
 python -m pip install -e . --no-use-pep517
 ```
 
+### 方式三：不安装直接运行
+
 你也可以**不安装**，直接运行：
 
 ```bash
 python -m errmail run -- python -c "raise RuntimeError('boom')"
 ```
+
+> **注意**：如果项目已发布到 PyPI，你也可以直接使用 `pip install errmail` 安装。
 
 ## 快速开始
 
