@@ -83,32 +83,38 @@ def _coalesce(*vals: Optional[str]) -> Optional[str]:
     return None
 
 
-def _env_bool(name: str, default: bool) -> bool:
+def _env_bool(name: str, default: bool, preset: dict[str, str] | None = None) -> bool:
     """/**
      * @param {string} name
      * @param {boolean} default
+     * @param {?Object<string, string>} preset
      * @returns {boolean}
      */"""
 
     raw = os.getenv(name)
+    if raw is None and preset is not None:
+        raw = preset.get(name)
     if raw is None:
         return default
-    raw = raw.strip().lower()
+    raw = str(raw).strip().lower()
     return raw in ("1", "true", "yes", "y", "on")
 
 
-def _env_int(name: str, default: int) -> int:
+def _env_int(name: str, default: int, preset: dict[str, str] | None = None) -> int:
     """/**
      * @param {string} name
      * @param {number} default
+     * @param {?Object<string, string>} preset
      * @returns {number}
      */"""
 
     raw = os.getenv(name)
+    if raw is None and preset is not None:
+        raw = preset.get(name)
     if raw is None:
         return default
     try:
-        return int(raw.strip())
+        return int(str(raw).strip())
     except ValueError:
         return default
 
@@ -140,15 +146,15 @@ def load_config(service: str | None = None) -> ErrmailConfig:
 
     return ErrmailConfig(
         smtp_host=_coalesce(os.getenv("ERRMAIL_SMTP_HOST"), preset.get("ERRMAIL_SMTP_HOST")),
-        smtp_port=_env_int("ERRMAIL_SMTP_PORT", 587),
+        smtp_port=_env_int("ERRMAIL_SMTP_PORT", 587, preset),
         smtp_user=_coalesce(os.getenv("ERRMAIL_SMTP_USER"), preset.get("ERRMAIL_SMTP_USER")),
         smtp_pass=_coalesce(os.getenv("ERRMAIL_SMTP_PASS"), preset.get("ERRMAIL_SMTP_PASS")),
-        smtp_tls=_env_bool("ERRMAIL_SMTP_TLS", True),
-        smtp_ssl=_env_bool("ERRMAIL_SMTP_SSL", False),
+        smtp_tls=_env_bool("ERRMAIL_SMTP_TLS", True, preset),
+        smtp_ssl=_env_bool("ERRMAIL_SMTP_SSL", False, preset),
         mail_from=_coalesce(os.getenv("ERRMAIL_MAIL_FROM"), preset.get("ERRMAIL_MAIL_FROM")),
         mail_to=_coalesce(os.getenv("ERRMAIL_MAIL_TO"), preset.get("ERRMAIL_MAIL_TO")),
-        cooldown_seconds=_env_int("ERRMAIL_COOLDOWN_SECONDS", 300),
-        tail_lines=_env_int("ERRMAIL_TAIL_LINES", 200),
+        cooldown_seconds=_env_int("ERRMAIL_COOLDOWN_SECONDS", 300, preset),
+        tail_lines=_env_int("ERRMAIL_TAIL_LINES", 200, preset),
         service=svc,
     )
 

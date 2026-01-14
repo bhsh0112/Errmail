@@ -41,7 +41,53 @@ python -m errmail run -- python -c "raise RuntimeError('boom')"
 
 ## 快速开始
 
-### 1) 平台默认使用“你的 SMTP”，用户只填邮箱（推荐）
+### 0) 先说明：两种使用场景
+
+- **场景 A（你能控制运行机器/镜像/容器）**：可以用 `/etc/errmail.env` 做“机器级默认 SMTP”
+- **场景 B（每个用户在自己电脑上用）**：推荐用 `~/.errmail.env` 做“个人默认 SMTP”（不需要管理员权限）
+
+你刚刚选择的是 **场景 B**，下面按 B 给完整步骤；A 我放在后面当可选项。
+
+### 1) 场景 B：每个用户电脑上直接用（推荐）
+
+#### 1.1 生成个人配置模板（写到 `~/.errmail.env`）
+
+```bash
+errmail init
+```
+
+它会生成 `~/.errmail.env`，你打开把以下几项填成真实值：
+
+- `ERRMAIL_SMTP_HOST`
+- `ERRMAIL_SMTP_PORT`（推荐 587）
+- `ERRMAIL_SMTP_TLS`（推荐 1）
+- `ERRMAIL_SMTP_USER`
+- `ERRMAIL_SMTP_PASS`（通常是“授权码/应用专用密码”）
+- `ERRMAIL_MAIL_FROM`（通常等于 SMTP_USER）
+
+你也可以让模板自动带上常见邮箱的默认参数（仍然需要你自己填写授权码/应用专用密码）：
+
+```bash
+errmail init --provider gmail
+errmail init --provider qq
+errmail init --provider 163
+```
+
+#### 1.2 先发一封测试邮件
+
+```bash
+errmail test --to user@example.com --verbose
+```
+
+#### 1.3 用 errmail 启动你的服务
+
+```bash
+errmail run --to user@example.com -- python -m uvicorn yourapp:app --port 8000
+```
+
+以后你就只需要改收件人邮箱（`--to` 或 `ERRMAIL_MAIL_TO`）即可。
+
+### 2) 场景 A：平台默认使用“你的 SMTP”，用户只填邮箱（可选）
 
 你（工具提供方/平台方）在机器上预置一个文件：`/etc/errmail.env`（或用 `ERRMAIL_CONFIG_FILE` 指定路径）。
 
@@ -80,7 +126,7 @@ errmail run --to user@example.com -- python -m uvicorn yourapp:app --port 8000
 errmail test --to user@example.com --verbose
 ```
 
-### 2) 直接用环境变量配置 SMTP（不预置文件时使用）
+### 3) 直接用环境变量配置 SMTP（不想用配置文件时使用）
 
 最小配置：
 
@@ -129,7 +175,7 @@ errmail run -- bash -lc "python -c 'raise RuntimeError(\"boom\")'"
 ### 通用规则（推荐）
 
 - **优先用 587 + STARTTLS**：`ERRMAIL_SMTP_PORT=587` 且 `ERRMAIL_SMTP_TLS=1`
-- 如果你的 SMTP 是 **465(SSL)**：当前版本只实现了 STARTTLS；建议你把服务端开 587，或我可以再给你加 465 支持
+- 如果你的 SMTP 是 **465(SSL)**：设置 `ERRMAIL_SMTP_SSL=1` 且通常 `ERRMAIL_SMTP_TLS=0`
 - 账号密码建议用“**应用专用密码**”（App Password），不要用网页登录密码
 
 ### 常见服务参考
@@ -145,10 +191,17 @@ errmail run -- bash -lc "python -c 'raise RuntimeError(\"boom\")'"
 - **腾讯企业邮 / 163 / 126（大多类似）**
   - 在邮箱“客户端/SMTP”设置里开启 SMTP/IMAP，并生成授权码
   - `ERRMAIL_SMTP_HOST` 以你邮箱提供方文档为准
-  - `ERRMAIL_SMTP_PORT=465` 的情况较多（若只有 465，我建议我给你补 SSL 模式）
+  - `ERRMAIL_SMTP_PORT=465` 的情况较多：此时用 `ERRMAIL_SMTP_SSL=1`
 
 - **自建 SMTP（Postfix/Exim/Exchange/公司网关）**
   - 确认允许从你的服务机器出站访问 SMTP（防火墙/安全组）
   - 建议提供 587 STARTTLS
+
+### 安全提醒（非常重要）
+
+- **不要把你的 SMTP 密码给别人**；方案 1 的含义是：每个用户只保存/使用自己的 SMTP 凭证
+- `~/.errmail.env` 里包含敏感信息，建议：
+  - 给文件设权限（例如 `chmod 600 ~/.errmail.env`）
+  - 不要提交到 git
 
 
