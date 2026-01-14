@@ -90,7 +90,7 @@ def build_subject(service: str, kind: str, fp: str) -> str:
 
     # 简化主题行，去掉 fingerprint（太长）
     kind_display = kind.replace("-", " ").title()
-    return f"[{service}] {kind_display}"
+    return f"【Bug警报！】{kind_display}"
 
 
 def format_body(
