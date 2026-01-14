@@ -88,7 +88,9 @@ def build_subject(service: str, kind: str, fp: str) -> str:
      * @returns {string}
      */"""
 
-    return f"[errmail] {service} {kind} fp={fp}"
+    # 简化主题行，去掉 fingerprint（太长）
+    kind_display = kind.replace("-", " ").title()
+    return f"[{service}] {kind_display}"
 
 
 def format_body(
@@ -123,26 +125,70 @@ def format_body(
     t = ts or time.time()
     when = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(t))
     cmd_str = " ".join(command)
-
+    sep = "=" * 70
+    sep_thin = "-" * 70
+    
+    # 格式化错误类型显示
+    kind_display = kind.replace("-", " ").title()
+    
+    # 构建邮件正文
     parts = [
-        f"Time: {when}",
-        f"Service: {service}",
-        f"Kind: {kind}",
-        f"Fingerprint: {fp}",
-        f"PID: {pid}",
-        f"ExitCode: {exit_code}",
-        f"CWD: {cwd}",
-        f"Command: {cmd_str}",
+        "=" * 70,
+        f" ERROR ALERT - {service.upper()} ",
+        "=" * 70,
         "",
-        "Message:",
-        message,
+        "[ Error Information ]",
+        sep_thin,
+        f"Error Type:    {kind_display}",
+        f"Error Message: {message}",
         "",
-        "Excerpt:",
-        excerpt.rstrip("\n"),
+        sep,
         "",
-        "Stderr Tail:",
-        tail.rstrip("\n"),
-        "",
+        "[ Error Details ]",
+        sep_thin,
     ]
+    
+    # 添加错误摘要（如果有）
+    if excerpt and excerpt.strip():
+        parts.append(excerpt.rstrip("\n"))
+        parts.append("")
+    
+    # 添加 stderr 输出（如果有）
+    if tail and tail.strip():
+        parts.extend([
+            sep,
+            "",
+            "[ Full Output (Stderr) ]",
+            sep_thin,
+            tail.rstrip("\n"),
+            "",
+        ])
+    
+    # 添加执行上下文信息
+    parts.extend([
+        sep,
+        "",
+        "[ Execution Context ]",
+        sep_thin,
+        f"Service:     {service}",
+        f"Time:        {when}",
+    ])
+    
+    if pid is not None:
+        parts.append(f"PID:         {pid}")
+    
+    if exit_code is not None:
+        parts.append(f"Exit Code:   {exit_code}")
+    
+    parts.extend([
+        f"Directory:   {cwd}",
+        f"Command:     {cmd_str}",
+        "",
+        sep,
+        "",
+        "This is an automated error notification from errmail.",
+        "",
+    ])
+    
     return "\n".join(parts)
 
