@@ -33,6 +33,7 @@ class ErrmailConfig:
     smtp_user: str | None
     smtp_pass: str | None
     smtp_tls: bool
+    smtp_ssl: bool
     mail_from: str | None
     mail_to: str | None
     cooldown_seconds: int
@@ -143,6 +144,7 @@ def load_config(service: str | None = None) -> ErrmailConfig:
         smtp_user=_coalesce(os.getenv("ERRMAIL_SMTP_USER"), preset.get("ERRMAIL_SMTP_USER")),
         smtp_pass=_coalesce(os.getenv("ERRMAIL_SMTP_PASS"), preset.get("ERRMAIL_SMTP_PASS")),
         smtp_tls=_env_bool("ERRMAIL_SMTP_TLS", True),
+        smtp_ssl=_env_bool("ERRMAIL_SMTP_SSL", False),
         mail_from=_coalesce(os.getenv("ERRMAIL_MAIL_FROM"), preset.get("ERRMAIL_MAIL_FROM")),
         mail_to=_coalesce(os.getenv("ERRMAIL_MAIL_TO"), preset.get("ERRMAIL_MAIL_TO")),
         cooldown_seconds=_env_int("ERRMAIL_COOLDOWN_SECONDS", 300),

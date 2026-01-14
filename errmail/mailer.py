@@ -54,7 +54,14 @@ def send_mail(cfg: ErrmailConfig, payload: MailPayload, timeout_seconds: int = 1
     msg.set_content(payload.body)
 
     try:
-        if cfg.smtp_tls:
+        # Priority: SMTP_SSL (implicit TLS, usually port 465) > STARTTLS (usually port 587) > plain.
+        if cfg.smtp_ssl:
+            context = ssl.create_default_context()
+            with smtplib.SMTP_SSL(cfg.smtp_host, cfg.smtp_port, timeout=timeout_seconds, context=context) as s:
+                if cfg.smtp_user and cfg.smtp_pass:
+                    s.login(cfg.smtp_user, cfg.smtp_pass)
+                s.send_message(msg)
+        elif cfg.smtp_tls:
             context = ssl.create_default_context()
             with smtplib.SMTP(cfg.smtp_host, cfg.smtp_port, timeout=timeout_seconds) as s:
                 s.ehlo()
