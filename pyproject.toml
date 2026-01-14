@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "errmail"
+version = "0.1.0"
+description = "Run any command, detect stderr errors/tracebacks, and email alerts without changing the app."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "errmail" }]
+
+[project.scripts]
+errmail = "errmail.cli:main"
+
